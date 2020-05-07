@@ -1,0 +1,36 @@
+{
+  "type": "panel",
+  "name": "my-plugin",
+  "id": "kcod-my-plugin",
+  "info": {
+    "description": "",
+    "author": {
+      "name": "ganadara135",
+      "url": ""
+    },
+    "keywords": [
+      "regression"
+    ],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/grafana/simple-react-panel"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/grafana/simple-react-panel/blob/master/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaVersion": "6.3.x",
+    "plugins": []
+  }
+}
