@@ -1,12 +1,16 @@
-# Grafana Panel Plugin Template
+# Grafana plugin 만들기
+현재 @next   버전만 가능 7.0.0-beta.1
+grafana docker image 버전도 7.0.0-beta1   로 맞춤
 
-<!-- 
-[![CircleCI](https://circleci.com/gh/grafana/simple-react-panel.svg?style=svg)](https://circleci.com/gh/grafana/simple-react-panel)
-[![David Dependency Status](https://david-dm.org/grafana/simple-react-panel.svg)](https://david-dm.org/grafana/simple-react-panel)
-[![David Dev Dependency Status](https://david-dm.org/grafana/simple-react-panel/dev-status.svg)](https://david-dm.org/grafana/simple-react-panel/?type=dev)
-[![Known Vulnerabilities](https://snyk.io/test/github/grafana/simple-react-panel/badge.svg)](https://snyk.io/test/github/grafana/simple-react-panel)
-[![Maintainability](https://api.codeclimate.com/v1/badges/1dee2585eb412f913cbb/maintainability)](https://codeclimate.com/github/grafana/simple-react-panel/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/1dee2585eb412f913cbb/test_coverage)](https://codeclimate.com/github/grafana/simple-react-panel/test_coverage) -->
+> docker pull grafana/grafana:7.0.0-beta1
+
+> docker run -d -p 3000:3000 -v "$(pwd)":/var/lib/grafana/plugins --name=grafana grafana/grafana:7.0.0-beta1
+
+> npx "@grafana/toolkit"@next plugin:create my-plugin
+
+[출처] https://blog.naver.com/ganadara1379/221950835966
+
+# Grafana Panel Plugin Template
 
 This template is a starting point for building Grafana Panel Plugins in Grafana 7.0+
 

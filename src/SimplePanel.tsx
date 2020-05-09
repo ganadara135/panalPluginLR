@@ -8,13 +8,44 @@ import { SimpleOptions } from 'types';
 import * as d3 from 'd3';
 import axios from 'axios';
 
+// interface Annotation {
+//   Id: string;
+//   Description: string;
+//   UserDescription: string;
+//   Data: {
+//     Hives: number;
+//   };
+// }
+// interface Device {
+//   Id: string;
+//   Device: string;
+//   Annotations: Annotation[];
+//   Meta: { UserDescription: string };
+// }
+
+// interface Error {
+//   status?: number;
+//   statusText?: string;
+//   message: string;
+// }
+
 interface MyPropsType {
   date?: Date;
   volume?: number;
 }
 interface Props extends PanelProps<SimpleOptions> {}
 
-export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
+export const SimplePanel: React.FC<Props> = (props: Props, { options, data, width, height }) => {
+  // const { options, width, height } = props;
+  // const [deviceName, setDeviceName] = useState<string | null>(null);
+  // const [device, setDevice] = useState<Device | null>(null);
+  // const [userdesc, setUserDesc] = useState('');
+  // const [hives, setHives] = useState(0);
+  // const [description, setDescription] = useState('');
+  // const [begin, setBegin] = useState(moment());
+  // const [editing, setEditing] = useState(false);
+  // const [error, setError] = useState<Error | null>(null);
+
   // const theme = useTheme();
   // const styles = getStyles();
   const d3Container = useRef(null);
@@ -71,6 +102,9 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
 
           forecastResult.unshift(history5[history5.length - 1]);
 
+          // 화면 지우기
+          const svg = d3.select('svg');
+          svg.selectAll('*').remove();
           const chart = d3.select('#chart');
           const margin = { top: 20, right: 20, bottom: 30, left: 70 };
           const width = 1000 - margin.left - margin.right;
@@ -128,38 +162,34 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
     }
   }, [width, height, d3Container.current]);
 
-  const predict = (data: any[], newX: number) => {
-    const round = (n: number) => Math.round(n);
-    // const round = (n) => Math.round(n * 100) / 100;
-    const sum = data.reduce(
-      (acc, pair) => {
-        const x = pair[0];
-        const y = pair[1];
+  return <svg id="chart" viewBox="0 0 1000 500" ref={d3Container}></svg>;
+};
 
-        if (y !== null) {
-          acc.x += x;
-          acc.y += y;
-          acc.squareX += x * x;
-          acc.product += x * y;
-          acc.len += 1;
-        }
+const predict = (data: any[], newX: number) => {
+  const round = (n: number) => Math.round(n);
+  // const round = (n) => Math.round(n * 100) / 100;
+  const sum = data.reduce(
+    (acc, pair) => {
+      const x = pair[0];
+      const y = pair[1];
 
-        return acc;
-      },
-      { x: 0, y: 0, squareX: 0, product: 0, len: 0 }
-    );
+      if (y !== null) {
+        acc.x += x;
+        acc.y += y;
+        acc.squareX += x * x;
+        acc.product += x * y;
+        acc.len += 1;
+      }
 
-    const rise = sum.len * sum.product - sum.x * sum.y;
-    const run = sum.len * sum.squareX - sum.x * sum.x;
-    const gradient = run === 0 ? 0 : round(rise / run);
-    const intercept = round(sum.y / sum.len - (gradient * sum.x) / sum.len);
-
-    return round(gradient * newX + intercept);
-  };
-  // return <svg ref={d3Container} ></svg>;
-  return (
-    <svg id="chart" viewBox="0 0 1000 500" ref={d3Container}>
-      {' '}
-    </svg>
+      return acc;
+    },
+    { x: 0, y: 0, squareX: 0, product: 0, len: 0 }
   );
+
+  const rise = sum.len * sum.product - sum.x * sum.y;
+  const run = sum.len * sum.squareX - sum.x * sum.x;
+  const gradient = run === 0 ? 0 : round(rise / run);
+  const intercept = round(sum.y / sum.len - (gradient * sum.x) / sum.len);
+
+  return round(gradient * newX + intercept);
 };
