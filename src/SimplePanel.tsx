@@ -82,14 +82,14 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, he
   // SELECT * FROM "h2o_feet" WHERE "water_level" + 2 > 11.9
   // SELECT /\d/ FROM (SELECT /meter/ FROM data WHERE   time > now() - 40s)  limit 1
 
-  const [selectVal, setSelectVal] = useState<string | null>(null);
+  const [selectVal, setSelectVal] = useState<number>();
   // const [fieldKeys, setFieldKeys] = useState<SelectableValue<{}>[]>();
-  const [fieldKeys, setFieldKeys] = useState<SelectableValue<string>[]>();
+  const [fieldKeys, setFieldKeys] = useState<SelectableValue<number>[]>();
   
   // const theme = useTheme();
   // const styles = getStyles();
   const d3Container = useRef(null);
-  // const values = [4, 8, 15, 16, 23, 42];
+
   useEffect(() => {
     axios({
       method: 'get',
@@ -105,32 +105,20 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, he
     })
     .then(function(response) {
       console.log(response.data.results[0].series[0].columns)
-      // const arr : SelectableValue<string>[] = 
-      // response.data.results[0].series[0].columns.map( (curElement: any, index: any) => ({
-      //     label : curElement,
-      //     description: curElement,
-      //     value: index
-      //   } as SelectableValue<string>)
-      // );
-
-      const returnArr : SelectableValue<string>[] = 
-      response.data.results[0].series[0].columns.reduce((acc: any, curArr: any, index: any) => {
+      const returnArr : SelectableValue<number>[] = 
+      response.data.results[0].series[0].columns.reduce((acc: any, curArr: any, index: number) => {
         if (!curArr.includes("time")) {
           acc.push({
             label : curArr,
             description: curArr,
-            value: index
-          })
+            value: index-1
+          } as SelectableValue<number>)
         }
         return acc;
       }, [])
     
-
       console.log("returnArr : ", returnArr);
-      
-      setFieldKeys(returnArr);
-      // setFieldKeys(response.data.results[0].series[0].columns)
-           
+      setFieldKeys(returnArr);           
     })
     .catch(function(error) {
       console.log(error);
@@ -138,13 +126,18 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, he
 
   }, []);
 
-  const onInput = (event: any) => {
-    setSelectVal(event.target.value);
+  const onInput = (val: any) => {
+    console.log("target value index : ", val);
+    setSelectVal(val);
   };
 
+  fieldKeys?.lastIndexOf
 
   const updatePoint = () => {
-      if (d3Container.current) {
+      if (d3Container.current && fieldKeys !== undefined && selectVal !== undefined) {
+        // console.log("chk : ", fieldKeys.find(el => el.value === (selectVal))?.label);
+        // console.log("chk2 : ", fieldKeys.find(el => el.value === (selectVal))?.label);
+        console.log(`SELECT median("${ fieldKeys.find(el => el.value === (selectVal))?.label}") FROM data WHERE time >= now() - 10m GROUP BY time(30s)`)
         axios({
           method: 'get',
           url: 'http://49.50.164.177:8086/query?pretty=true',
@@ -152,17 +145,18 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, he
             u: 'admin',
             p: 'admin',
             db: 'emsdb',
-            q: 'SELECT median("meter0/ActivePower") FROM data WHERE time >= now() - 10m GROUP BY time(30s)',
+            // q: 'SELECT median("meter0/ActivePower") FROM data WHERE time >= now() - 10m GROUP BY time(30s)',
+            q: `SELECT median("${ fieldKeys.find(el => el.value === (selectVal))?.label}") FROM data WHERE time >= now() - 10m GROUP BY time(30s)`,
             epoch: 'ms',
           },
         })
         .then(function(response) {
+      
+          if(response.data.results[0].series[0].values === 0){
+            console.log("dp")
+            return ;
+          }
           let myHistory = response.data.results[0].series[0].values;
-          // let myHistory = props.data.series;
-          // console.log("props: ", props)
-          // console.log("props.data.state: ", props.data.state)
-          // console.log('myHistory : ', props.data.series);
-          // console.log("data: ", data);
 
           const history5 = myHistory.map((d: any) => {
             // let myDate = new Date(d[0]);
