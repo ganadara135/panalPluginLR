@@ -4,7 +4,7 @@ import { PanelEditorProps } from '@grafana/data';
 
 import { SimpleOptions } from './types';
 
-export class BeicavieEditor extends PureComponent<PanelEditorProps<SimpleOptions>> {
+export class MyPanelEditor extends PureComponent<PanelEditorProps<SimpleOptions>> {
   onTextChanged = ({ target }: any) => {
     this.props.onOptionsChange({ ...this.props.options, title: target.value });
   };

@@ -1,7 +1,7 @@
 import { PanelPlugin } from '@grafana/data';
 import { SimpleOptions, defaults } from './types';
 import { SimplePanel } from './SimplePanel';
-import { BeicavieEditor } from './BeicavieEditor';
+import { MyPanelEditor } from './MyPanelEditor';
 
 export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel)
   .setPanelOptions(builder => {
@@ -41,4 +41,4 @@ export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel)
       });
   })
   .setDefaults(defaults)
-  .setEditor(BeicavieEditor);
+  .setEditor(MyPanelEditor);

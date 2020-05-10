@@ -1,70 +1,168 @@
-import React, { useRef, useEffect } from 'react';
-import { PanelProps } from '@grafana/data';
+import React, { useRef, useEffect, useState } from 'react';
+import {
+  PanelProps,
+  LoadingState,
+  DataFrame,
+  DataQueryRequest,
+  DataQueryError,
+  TimeRange,
+  // SelectableValue,
+  // TimeZone,
+  // AbsoluteTimeRange,
+  // InterpolateFunction,
+  // ScopedVars,
+} from '@grafana/data';
+// import { DataFrame } from '@grafana/dataFrame';
 import { SimpleOptions } from 'types';
-// import { css, cx } from 'emotion';
-// import { stylesFactory, useTheme } from '@grafana/ui';
-// import { useTheme } from '@grafana/ui';
-// import { select } from 'd3';
+import { Tooltip, Button, Select,  } from '@grafana/ui';
+
 import * as d3 from 'd3';
 import axios from 'axios';
 
-// interface Annotation {
-//   Id: string;
-//   Description: string;
-//   UserDescription: string;
-//   Data: {
-//     Hives: number;
-//   };
+// import { DataQueryResponse, DataSourceApi } from '@grafana/data';
+// import { MetricsPanelCtrl, QeuryCtrl } from '@grafana/app/plugins/sdk';
+// import appEvents from 'grafana/app/core/app_events';
+// import {loadPluginCss} from 'grafana/app/plugins/sdk';
+// loadPluginCss({
+//   dark: 'plugins/grafana-worldmap-panel/css/worldmap.dark.css',
+//   light: 'plugins/grafana-worldmap-panel/css/worldmap.light.css'
+// });
+
+// import { Select, SelectOptionItem } from '@grafana/ui';
+
+// export interface VariableQueryState {
+//   selectedQueryType: SelectOptionItem<string>;
+//   selectedTagType: SelectOptionItem<string>;
 // }
-// interface Device {
-//   Id: string;
-//   Device: string;
-//   Annotations: Annotation[];
-//   Meta: { UserDescription: string };
+/**
+ * Used in select elements
+ */
+
+// interface MyOptionsOfSelect {
+//   fieldKey?: string;
+//   label?: string;
+//   value?: string;
+//   imgUrl?: string;  
+//   description?: string;
+//   [key: string]: any;
 // }
 
-// interface Error {
-//   status?: number;
-//   statusText?: string;
-//   message: string;
-// }
+export interface SelectableValue<T = any> {
+  label?: string;
+  value?: T;
+  imgUrl?: string;
+  description?: string;
+  [key: string]: any;
+}
+
 
 interface MyPropsType {
   date?: Date;
   volume?: number;
 }
-interface Props extends PanelProps<SimpleOptions> {}
 
-export const SimplePanel: React.FC<Props> = (props: Props, { options, data, width, height }) => {
-  // const { options, width, height } = props;
-  // const [deviceName, setDeviceName] = useState<string | null>(null);
-  // const [device, setDevice] = useState<Device | null>(null);
-  // const [userdesc, setUserDesc] = useState('');
-  // const [hives, setHives] = useState(0);
-  // const [description, setDescription] = useState('');
-  // const [begin, setBegin] = useState(moment());
-  // const [editing, setEditing] = useState(false);
-  // const [error, setError] = useState<Error | null>(null);
+export interface PanelData {
+  state: LoadingState;
+  series: DataFrame[];
+  request?: DataQueryRequest;
+  error?: DataQueryError;
+  // Contains the range from the request or a shifted time range if a request uses relative time
+  timeRange: TimeRange;
+}
+// export type InterpolateFunction = (value: string, scopedVars?: ScopedVars, format?: string | Function) => string;
+interface Props extends PanelProps<SimpleOptions> { }
 
+export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, height }) => {
+
+  // SELECT "_componentManager/_PropertyEnabled" FROM data WHERE time > now() - 30s
+  // SELECT /meter/ FROM data WHERE time > now() - 40s
+  // SELECT /Simul/ FROM (SELECT /meter/ FROM data WHERE  time > now() - 40s)
+  // SELECT /1|5/ FROM (SELECT /meter/ FROM data WHERE  time > now() - 40s)
+  // SELECT /\d/ FROM (SELECT /meter/ FROM data WHERE  time > now() - 40s)
+  // SELECT * FROM "h2o_feet" WHERE "water_level" + 2 > 11.9
+  // SELECT /\d/ FROM (SELECT /meter/ FROM data WHERE   time > now() - 40s)  limit 1
+
+  const [selectVal, setSelectVal] = useState<string | null>(null);
+  // const [fieldKeys, setFieldKeys] = useState<SelectableValue<{}>[]>();
+  const [fieldKeys, setFieldKeys] = useState<SelectableValue<string>[]>();
+  
   // const theme = useTheme();
   // const styles = getStyles();
   const d3Container = useRef(null);
   // const values = [4, 8, 15, 16, 23, 42];
   useEffect(() => {
-    if (d3Container.current) {
-      axios({
-        method: 'get',
-        url: 'http://49.50.164.177:8086/query?pretty=true',
-        params: {
-          u: 'admin',
-          p: 'admin',
-          db: 'emsdb',
-          q: 'SELECT median("meter0/ActivePower") FROM data WHERE time >= now() - 10m GROUP BY time(30s)',
-          epoch: 'ms',
-        },
-      })
+    axios({
+      method: 'get',
+      url: 'http://49.50.164.177:8086/query?pretty=true',
+      params: {
+        u: 'admin',
+        p: 'admin',
+        db: 'emsdb',
+        // q: 'SELECT median("meter0/ActivePower") FROM data WHERE time >= now() - 10m GROUP BY time(30s)',
+        q: 'SELECT /\d/ FROM (SELECT /meter/ FROM data WHERE time > now() - 40s)  limit 1',
+        epoch: 'ms',
+      },
+    })
+    .then(function(response) {
+      console.log(response.data.results[0].series[0].columns)
+      // const arr : SelectableValue<string>[] = 
+      // response.data.results[0].series[0].columns.map( (curElement: any, index: any) => ({
+      //     label : curElement,
+      //     description: curElement,
+      //     value: index
+      //   } as SelectableValue<string>)
+      // );
+
+      const returnArr : SelectableValue<string>[] = 
+      response.data.results[0].series[0].columns.reduce((acc: any, curArr: any, index: any) => {
+        if (!curArr.includes("time")) {
+          acc.push({
+            label : curArr,
+            description: curArr,
+            value: index
+          })
+        }
+        return acc;
+      }, [])
+    
+
+      console.log("returnArr : ", returnArr);
+      
+      setFieldKeys(returnArr);
+      // setFieldKeys(response.data.results[0].series[0].columns)
+           
+    })
+    .catch(function(error) {
+      console.log(error);
+    });
+
+  }, []);
+
+  const onInput = (event: any) => {
+    setSelectVal(event.target.value);
+  };
+
+
+  const updatePoint = () => {
+      if (d3Container.current) {
+        axios({
+          method: 'get',
+          url: 'http://49.50.164.177:8086/query?pretty=true',
+          params: {
+            u: 'admin',
+            p: 'admin',
+            db: 'emsdb',
+            q: 'SELECT median("meter0/ActivePower") FROM data WHERE time >= now() - 10m GROUP BY time(30s)',
+            epoch: 'ms',
+          },
+        })
         .then(function(response) {
           let myHistory = response.data.results[0].series[0].values;
+          // let myHistory = props.data.series;
+          // console.log("props: ", props)
+          // console.log("props.data.state: ", props.data.state)
+          // console.log('myHistory : ', props.data.series);
+          // console.log("data: ", data);
 
           const history5 = myHistory.map((d: any) => {
             // let myDate = new Date(d[0]);
@@ -155,15 +253,54 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options, data, widt
             .attr('stroke-dasharray', '10,7')
             .attr('stroke-width', 5.5)
             .attr('d', line);
+
         })
         .catch(function(error) {
           console.log(error);
         });
     }
-  }, [width, height, d3Container.current]);
+  };
 
-  return <svg id="chart" viewBox="0 0 1000 500" ref={d3Container}></svg>;
+  // return <svg id="chart" viewBox="0 0 1000 500" ref={d3Container}></svg>;
+  return (
+    <div
+        style={{
+          position: 'relative',
+          width,
+          height,
+        }}
+      >
+        <div>
+          <h3>{"측정값을 선택하세요(10분 예측)"}</h3>
+          <h4>{fieldKeys?.length}</h4>
+          <h5>{fieldKeys?.values}</h5>
+          <Select
+            // value={fieldKeys}
+            // options={myOptions}
+            options={fieldKeys}
+            placeholder="예측할 측정값 선택"
+            onChange={item => onInput(item.value)} />
+
+          <input type="text" placeholder="측정값 선택" value={selectVal as any} ng-change={() => onInput} />
+          <Tooltip
+            content={
+              <div>
+                {"선택 가능한 측정값을 선택하세요"}
+              </div>
+            }
+          >
+            <Button onClick={  () => updatePoint()} children={'Update'} />
+          </Tooltip>
+        </div>
+        <svg id="chart" viewBox="0 0 1000 500" ref={d3Container}></svg>
+    </div>
+  )
 };
+
+
+
+
+
 
 const predict = (data: any[], newX: number) => {
   const round = (n: number) => Math.round(n);
