@@ -34,19 +34,10 @@ import axios from 'axios';
 //   selectedQueryType: SelectOptionItem<string>;
 //   selectedTagType: SelectOptionItem<string>;
 // }
+
 /**
  * Used in select elements
  */
-
-// interface MyOptionsOfSelect {
-//   fieldKey?: string;
-//   label?: string;
-//   value?: string;
-//   imgUrl?: string;  
-//   description?: string;
-//   [key: string]: any;
-// }
-
 export interface SelectableValue<T = any> {
   label?: string;
   value?: T;
@@ -54,7 +45,6 @@ export interface SelectableValue<T = any> {
   description?: string;
   [key: string]: any;
 }
-
 
 interface MyPropsType {
   date?: Date;
@@ -94,17 +84,19 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, he
     axios({
       method: 'get',
       url: 'http://49.50.164.177:8086/query?pretty=true',
+      
       params: {
-        u: 'admin',
-        p: 'admin',
-        db: 'emsdb',
+        u: "admin",
+        p: "admin",
+        db: "emsdb",
         // q: 'SELECT median("meter0/ActivePower") FROM data WHERE time >= now() - 10m GROUP BY time(30s)',
-        q: 'SELECT /\d/ FROM (SELECT /meter/ FROM data WHERE time > now() - 40s)  limit 1',
-        epoch: 'ms',
+        q: "SELECT /\\d/ FROM (SELECT /meter/ FROM data WHERE time > now() - 40s)  limit 1",
+        epoch: "ms",
       },
     })
     .then(function(response) {
       console.log(response.data.results[0].series[0].columns)
+      console.log(response.data.results[0].series[0].values[0])
       const returnArr : SelectableValue<number>[] = 
       response.data.results[0].series[0].columns.reduce((acc: any, curArr: any, index: number) => {
         if (!curArr.includes("time")) {
@@ -131,12 +123,9 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, he
     setSelectVal(val);
   };
 
-  fieldKeys?.lastIndexOf
-
   const updatePoint = () => {
       if (d3Container.current && fieldKeys !== undefined && selectVal !== undefined) {
-        // console.log("chk : ", fieldKeys.find(el => el.value === (selectVal))?.label);
-        // console.log("chk2 : ", fieldKeys.find(el => el.value === (selectVal))?.label);
+
         console.log(`SELECT median("${ fieldKeys.find(el => el.value === (selectVal))?.label}") FROM data WHERE time >= now() - 10m GROUP BY time(30s)`)
         axios({
           method: 'get',
@@ -153,7 +142,7 @@ export const SimplePanel: React.FC<Props> = (props: Props, { options,  width, he
         .then(function(response) {
       
           if(response.data.results[0].series[0].values === 0){
-            console.log("dp")
+            console.log("에러 발생")
             return ;
           }
           let myHistory = response.data.results[0].series[0].values;
